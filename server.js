@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import path from 'path';
+import { fileURLToPath } from "url";
 import { sequelize } from "./models/index.js"
 import { Item } from "./models/Item.js"
 import { Product } from "./models/Product.js";
@@ -7,6 +9,8 @@ import { defaultProducts } from "./defaultData/defaultProducts.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Middleware
 app.use(cors());
@@ -23,6 +27,9 @@ app.get('/api/data', (req, res) => {
     res.json({ success: true, data: ['item1', 'item2', 'item3'] })
     })
 */
+
+// Serve images from the images folder
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.get('/api/data', async (req, res) => {
     const items = await Item.findAll();
