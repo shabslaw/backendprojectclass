@@ -6,6 +6,10 @@ import { sequelize } from "./models/index.js"
 import { Item } from "./models/Item.js"
 import { Product } from "./models/Product.js";
 import { defaultProducts } from "./defaultData/defaultProducts.js";
+import { DeliveryOptions } from "./models/DeliveryOptions.js"
+import { defaultDeliveryOptions } from "./defaultData/defaultDeliveryOptions.js";
+
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -38,7 +42,12 @@ app.get('/api/data', async (req, res) => {
 
 app.get('/products', async (req, res) => {
     const products = await Product.findAll();
-    res.json( products );
+    res.json(products);
+})
+
+app.get('/delivery-options', async (req, res) => {
+    const deliveryOptions = await DeliveryOptions.findAll();
+    res.json(deliveryOptions);
 })
 
 // Error handling middleware
@@ -62,10 +71,17 @@ await sequelize.sync({ force: true })
 await Item.create({ name: 'Sample Item' });
 // Sync database and load default products if none exist
 // await sequelize.sync()
+
 const productCount = await Product.count();
 if (productCount === 0) {
     await Product.bulkCreate(defaultProducts);
 }
+
+const deliveryOptonsCount = await DeliveryOptions.count();
+if (deliveryOptonsCount === 0) {
+    await DeliveryOptions.bulkCreate(defaultDeliveryOptions);
+}
+
 
 // Start Server
 app.listen(PORT, () => {
