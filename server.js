@@ -1,23 +1,10 @@
 import express from "express";
 import cors from "cors";
-import { Sequelize, DataTypes } from "sequelize";
+import { sequelize } from "./models/index.js"
+import { Item } from "./models/Item.js"
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-// Initilize Sequelize with SQLite
-const sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: './database.sqlite'
-});
-
-// Define a simple model
-const Item = sequelize.define('Item', {
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false
-    }
-});
 
 // Middleware
 app.use(cors());
