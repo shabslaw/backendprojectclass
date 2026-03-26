@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import { sequelize } from "./models/index.js"
 import { Item } from "./models/Item.js"
+import { Product } from "./models/Product.js";
+import { defaultProducts } from "./defaultData/defaultProducts.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,6 +29,11 @@ app.get('/api/data', async (req, res) => {
     res.json({ success: true, data: items });
 })
 
+app.get('/products', async (req, res) => {
+    const products = await Product.findAll();
+    res.json( products );
+})
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
@@ -43,8 +50,15 @@ sequelize.sync().then(async () => {
 */
 
 // OR 
+// await sequelize.sync()
 await sequelize.sync({ force: true })
 await Item.create({ name: 'Sample Item' });
+// Sync database and load default products if none exist
+// await sequelize.sync()
+const productCount = await Product.count();
+if (productCount === 0) {
+    await Product.bulkCreate(defaultProducts);
+}
 
 // Start Server
 app.listen(PORT, () => {
