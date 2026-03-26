@@ -8,6 +8,8 @@ import { Product } from "./models/Product.js";
 import { defaultProducts } from "./defaultData/defaultProducts.js";
 import { DeliveryOptions } from "./models/DeliveryOptions.js"
 import { defaultDeliveryOptions } from "./defaultData/defaultDeliveryOptions.js";
+import { CartItem } from "./models/CartItem.js";
+import { defaultCartItem } from "./defaultData/defaultCartItem.js";
 
 
 
@@ -35,6 +37,7 @@ app.get('/api/data', (req, res) => {
 // Serve images from the images folder
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
+
 app.get('/api/data', async (req, res) => {
     const items = await Item.findAll();
     res.json({ success: true, data: items });
@@ -49,6 +52,27 @@ app.get('/delivery-options', async (req, res) => {
     const deliveryOptions = await DeliveryOptions.findAll();
     res.json(deliveryOptions);
 })
+
+app.get('/cart-item', async (req, res) => {
+    const expand = req.query.expand;
+    let cartItems = await CartItem.findAll();
+
+    if (expand === 'product') {
+        cartItems = await Promise.all(cartItems.map(
+            async (item) => {
+                const product = await Product.findByPk(item.productId);
+                return {
+                    ...item.toJSON(),
+                    product
+                };
+            }
+        ));
+    }
+
+    res.json(cartItems);
+})
+
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -81,6 +105,13 @@ const deliveryOptonsCount = await DeliveryOptions.count();
 if (deliveryOptonsCount === 0) {
     await DeliveryOptions.bulkCreate(defaultDeliveryOptions);
 }
+
+const cartItemCount = await CartItem.count();
+if (cartItemCount === 0) {
+    await CartItem.bulkCreate(defaultCartItem);
+}
+
+
 
 
 // Start Server
