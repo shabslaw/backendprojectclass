@@ -53,7 +53,7 @@ app.get('/delivery-options', async (req, res) => {
     res.json(deliveryOptions);
 })
 
-app.get('/cart-item', async (req, res) => {
+app.get('/cart-items', async (req, res) => {
     const expand = req.query.expand;
     let cartItems = await CartItem.findAll();
 
@@ -73,8 +73,41 @@ app.get('/cart-item', async (req, res) => {
 })
 
 
+// API route to add a product to the cart
+app.post('/cart-items', async (req, res) => {
+    const { productId, quantity } = req.body;
+
+    // Check if productId exists in the database
+    const product = await Product.findByPk(productId);
+    if (!product) {
+        return res.status(400).json({ error: 'Product not found' });
+    }
+
+    // Check if quantity is a number between 1 and 10
+    if (typeof quantity !== "number" || quantity < 1 || quantity > 10) {
+        return res.status(400).json({ error: "Quantity must be a number between 1 and 10" })
+    }
+
+    // Check if the product already exists in the cart
+    let cartItem = await CartItem.findOne({
+        where: { productId }
+    });
+    if (cartItem) {
+        // Increase the quantity
+        cartItem.quantity += quantity;
+        await cartItem.save();
+    } else {
+        // Add the product to the cart with default deliveryOptionId of "1"
+        cartItem = await CartItem.create({ productId, quantity, deliveryOptionId: "1" })
+    }
+
+    // res.status(201).json({ success: true });
+    res.status(201).json(cartItem);
+});
+
 
 // Error handling middleware
+/* eslint-disable no-unused-vars */
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ error: 'Something went wrong!' })
@@ -90,8 +123,8 @@ sequelize.sync().then(async () => {
 */
 
 // OR 
-// await sequelize.sync()
-await sequelize.sync({ force: true })
+await sequelize.sync()
+// await sequelize.sync({ force: true })
 await Item.create({ name: 'Sample Item' });
 // Sync database and load default products if none exist
 // await sequelize.sync()
