@@ -10,6 +10,8 @@ import { DeliveryOptions } from "./models/DeliveryOptions.js"
 import { defaultDeliveryOptions } from "./defaultData/defaultDeliveryOptions.js";
 import { CartItem } from "./models/CartItem.js";
 import { defaultCartItem } from "./defaultData/defaultCartItem.js";
+import { where } from "sequelize";
+import { error } from "console";
 
 
 
@@ -103,6 +105,42 @@ app.post('/cart-items', async (req, res) => {
 
     // res.status(201).json({ success: true });
     res.status(201).json(cartItem);
+});
+
+// API route to update a product in the cart
+app.put('/cart-items/:productId', async (req, res) => {
+    const { productId } = req.params;
+    const { quantity, deliveryOptionId } = req.body;
+
+    // Check if the cart item exists
+    const cartItem = await CartItem.findOne({
+        where: { productId }
+    });
+    if (!cartItem) {
+        return res.status(404).json({ error: 'Cart item not found' });
+    }
+
+    // Validate quantity if provided
+    if (quantity !== undefined) {
+        if (typeof quantity !== "number" || quantity < 1 || quantity > 10) {
+            return res.status(400).json({ error: 'Quantity must be a number between 1 and 10' });
+        }
+
+        cartItem.quantity = quantity;
+    }
+
+    // Validate deliveryOptionId if provided
+    if (deliveryOptionId !== undefined) {
+        const deliveryOption = await DeliveryOptions.findByPk(deliveryOptionId);
+        if (!deliveryOption) {
+            return res.status(400).json({ error: "Invalid delivery option" });
+        }
+
+        cartItem.deliveryOptionId = deliveryOptionId;
+    }
+
+    await cartItem.save();
+    res.json(cartItem);
 });
 
 
