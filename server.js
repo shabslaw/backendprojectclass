@@ -143,6 +143,23 @@ app.put('/cart-items/:productId', async (req, res) => {
     res.json(cartItem);
 });
 
+// API route to delete a product from the cart
+app.delete("/cart-items/:productId", async (req, res) => {
+    const { productId } = req.params;
+
+    // Check if the cart item exists
+    const cartItem = await CartItem.findOne({
+        where: { productId }
+    });
+    if (!cartItem) {
+        return res.status(404).json({ error: "Cart item not found" });
+    }
+
+    // Delete the cart item
+    await cartItem.destroy();
+    res.status(204).send();
+})
+
 
 // Error handling middleware
 /* eslint-disable no-unused-vars */
