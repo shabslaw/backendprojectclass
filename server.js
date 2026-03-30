@@ -270,6 +270,19 @@ app.post('/orders', async (req, res) => {
     res.status(201).json(order);
 })
 
+// API route to reset all data
+app.post('/reset', async (req, res) => {
+    await sequelize.sync({ force: true });
+
+    // Load default data
+    await Product.bulkCreate(defaultProducts)
+    await DeliveryOptions.bulkCreate(defaultDeliveryOptions)
+    await CartItem.bulkCreate(defaultCartItem)
+    await Order.bulkCreate(defaultOrders)
+
+    res.status(204).send();
+})
+
 
 // Error handling middleware
 /* eslint-disable no-unused-vars */
@@ -298,20 +311,8 @@ await Item.create({ name: 'Sample Item' });
 const productCount = await Product.count();
 if (productCount === 0) {
     await Product.bulkCreate(defaultProducts);
-}
-
-const deliveryOptonsCount = await DeliveryOptions.count();
-if (deliveryOptonsCount === 0) {
     await DeliveryOptions.bulkCreate(defaultDeliveryOptions);
-}
-
-const cartItemCount = await CartItem.count();
-if (cartItemCount === 0) {
     await CartItem.bulkCreate(defaultCartItem);
-}
-
-const orderCount = await Order.count();
-if (orderCount === 0) {
     await Order.bulkCreate(defaultOrders);
 }
 
