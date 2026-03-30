@@ -189,6 +189,35 @@ app.get('/orders', async (req, res) => {
     res.json(orders);
 });
 
+// API route to get a single order by its ID
+app.get('/orders/:orderId', async (req, res) => {
+    const { orderId } = req.params;
+    const expand = req.query.expand;
+
+    let order = await Order.findByPk(orderId);
+    if (!order) {
+        return res.status(404).json({ error: 'Order Not found' });
+    }
+
+    if (expand === 'products') {
+        const products = await Promise.all(order.products.map(async (product) => {
+            const productDetails = await Product.findByPk(product.productId);
+
+            return {
+                ...product,
+                product: productDetails
+            };
+        }));
+
+        order = {
+            ...order.toJSON(),
+            products
+        };
+    }
+
+    res.json(order);
+});
+
 
 // API toute to create an order
 app.post('/orders', async (req, res) => {
