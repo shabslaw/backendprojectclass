@@ -10,8 +10,8 @@ import { DeliveryOptions } from "./models/DeliveryOptions.js"
 import { defaultDeliveryOptions } from "./defaultData/defaultDeliveryOptions.js";
 import { CartItem } from "./models/CartItem.js";
 import { defaultCartItem } from "./defaultData/defaultCartItem.js";
-import { where } from "sequelize";
-import { error } from "console";
+import { Order } from "./models/Order.js";
+import { defaultOrders } from "./defaultData/defaultOrders.js";
 
 
 
@@ -161,6 +161,34 @@ app.delete("/cart-items/:productId", async (req, res) => {
 })
 
 
+// API route to get all orders
+app.get('/orders', async (req, res) => {
+    const expand = req.query.expand;
+    let orders = await Order.findAll();
+
+    if (expand === 'products') {
+        orders = await Promise.all(orders.map(
+            async (order) => {
+                const products = await Promise.all(order.products.map(async (product) => {
+                    const productDetails = await Product.findByPk(product.productId);
+
+                    return {
+                        ...product,
+                        product: productDetails
+                    };
+                }));
+
+                return {
+                    ...order.toJSON(),
+                    products
+                };
+            }
+        ));
+    }
+
+    res.json(orders);
+});
+
 // Error handling middleware
 /* eslint-disable no-unused-vars */
 app.use((err, req, res, next) => {
@@ -178,6 +206,7 @@ sequelize.sync().then(async () => {
 */
 
 // OR 
+// Sync database and load default products, delivery options, cart items, and orders if none exist
 await sequelize.sync()
 // await sequelize.sync({ force: true })
 await Item.create({ name: 'Sample Item' });
@@ -197,6 +226,11 @@ if (deliveryOptonsCount === 0) {
 const cartItemCount = await CartItem.count();
 if (cartItemCount === 0) {
     await CartItem.bulkCreate(defaultCartItem);
+}
+
+const orderCount = await Order.count();
+if (orderCount === 0) {
+    await Order.bulkCreate(defaultOrders);
 }
 
 
