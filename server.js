@@ -327,12 +327,12 @@ if (productCount === 0) {
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
 
-app.use('/products', productRoutes)
-app.use('/delivery-options', deliveryOptionsRoutes)
-app.use('/cart-items', cartItemRoutes)
-app.use('/orders', orderRoutes)
-app.use('/reset', resetRoutes)
-app.use('/payment-summary', paymentSummaryRoutes)
+app.use('/api/products', productRoutes)
+app.use('/api/delivery-options', deliveryOptionsRoutes)
+app.use('/api/cart-items', cartItemRoutes)
+app.use('/api/orders', orderRoutes)
+app.use('/api/reset', resetRoutes)
+app.use('/api/payment-summary', paymentSummaryRoutes)
 
 
 // Error handling middleware
