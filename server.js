@@ -4,14 +4,12 @@ import path from 'path';
 import { fileURLToPath } from "url";
 import { sequelize } from "./models/index.js"
 import { Item } from "./models/Item.js"
-import { Product } from "./models/Product.js";
-import { defaultProducts } from "./defaultData/defaultProducts.js";
-import { DeliveryOptions } from "./models/DeliveryOptions.js"
-import { defaultDeliveryOptions } from "./defaultData/defaultDeliveryOptions.js";
-import { CartItem } from "./models/CartItem.js";
-import { defaultCartItem } from "./defaultData/defaultCartItem.js";
-import { Order } from "./models/Order.js";
-import { defaultOrders } from "./defaultData/defaultOrders.js";
+import productRoutes from './routes/products.js';
+import deliveryOptionsRoutes from './routes/deliveryOptions.js';
+import cartItemRoutes from './routes/cartItems.js';
+import orderRoutes from './routes/orders.js';
+import resetRoutes from './routes/reset.js';
+import paymentSummaryRoutes from './routes/paymenySumary.js'
 
 
 
@@ -24,20 +22,20 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(express.json());
 
+
 // Simple route
 app.get('/', (req, res)=>{
     res.json({ message: 'Welcome to the UNCLE SHABS Express.js backend!' })
 })
 
-// API route example
 /*
+
+// API route example
+
 app.get('/api/data', (req, res) => {
     res.json({ success: true, data: ['item1', 'item2', 'item3'] })
-    })
-*/
+})
 
-// Serve images from the images folder
-app.use('/images', express.static(path.join(__dirname, 'images')));
 
 
 app.get('/api/data', async (req, res) => {
@@ -106,6 +104,7 @@ app.post('/cart-items', async (req, res) => {
     // res.status(201).json({ success: true });
     res.status(201).json(cartItem);
 });
+
 
 // API route to update a product in the cart
 app.put('/cart-items/:productId', async (req, res) => {
@@ -284,6 +283,58 @@ app.post('/reset', async (req, res) => {
 })
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+// Sync database and create a sample item
+// { force: true } : to clear stored data in storage
+
+sequelize.sync().then(async () => {
+    await Item.create({ name: 'Sample Item' });
+});
+
+
+// OR 
+// Sync database and load default products, delivery options, cart items, and orders if none exist
+await sequelize.sync()
+// await sequelize.sync({ force: true })
+await Item.create({ name: 'Sample Item' });
+// Sync database and load default products if none exist
+// await sequelize.sync()
+
+const productCount = await Product.count();
+if (productCount === 0) {
+    await Product.bulkCreate(defaultProducts);
+    await DeliveryOptions.bulkCreate(defaultDeliveryOptions);
+    await CartItem.bulkCreate(defaultCartItem);
+    await Order.bulkCreate(defaultOrders);
+}
+
+
+*/
+
+
+// Serve images from the images folder
+app.use('/images', express.static(path.join(__dirname, 'images')));
+
+
+app.use('/products', productRoutes)
+app.use('/delivery-options', deliveryOptionsRoutes)
+app.use('/cart-items', cartItemRoutes)
+app.use('/orders', orderRoutes)
+app.use('/reset', resetRoutes)
+app.use('/payment-summary', paymentSummaryRoutes)
+
+
 // Error handling middleware
 /* eslint-disable no-unused-vars */
 app.use((err, req, res, next) => {
@@ -303,18 +354,6 @@ sequelize.sync().then(async () => {
 // OR 
 // Sync database and load default products, delivery options, cart items, and orders if none exist
 await sequelize.sync()
-// await sequelize.sync({ force: true })
-await Item.create({ name: 'Sample Item' });
-// Sync database and load default products if none exist
-// await sequelize.sync()
-
-const productCount = await Product.count();
-if (productCount === 0) {
-    await Product.bulkCreate(defaultProducts);
-    await DeliveryOptions.bulkCreate(defaultDeliveryOptions);
-    await CartItem.bulkCreate(defaultCartItem);
-    await Order.bulkCreate(defaultOrders);
-}
 
 
 
